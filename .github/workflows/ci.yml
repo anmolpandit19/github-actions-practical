@@ -10,11 +10,13 @@ on:
       - main
 
   workflow_dispatch:
+
 env:
   APP_NAME: GitHub-Actions-App
   ENVIRONMENT: dev
 
 jobs:
+
   build:
     runs-on: ubuntu-latest
 
@@ -33,6 +35,8 @@ jobs:
           echo "Version: ${{ vars.APP_VERSION }}"
 
       - name: Check Secret
+        env:
+          DEMO_SECRET: ${{ secrets.DEMO_SECRET }}
         run: |
           if [ -n "$DEMO_SECRET" ]; then
             echo "Secret is available securely"
@@ -40,20 +44,23 @@ jobs:
             echo "Secret is NOT available"
             exit 1
           fi
-        env:
-          DEMO_SECRET: ${{ secrets.DEMO_SECRET }}
 
-    test:
+  test:
     needs: build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Run test
-        run: echo "Test successful!"
+      - name: Run Tests
+        run: |
+          echo "Testing $APP_NAME"
+          echo "Environment: $ENVIRONMENT"
+          echo "All tests passed!"
 
-      - name: PR validation
+      - name: PR Validation
         if: github.event_name == 'pull_request'
-        run: echo "This step runs only for Pull Requests"
+        run: |
+          echo "This step runs only for Pull Requests"
+          echo "PR validation successful!"
