@@ -55,7 +55,7 @@ jobs:
       - name: Show Docker images
         run: docker images
 
-         docker-push:
+  docker-push:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: docker-build
     runs-on: ubuntu-latest
