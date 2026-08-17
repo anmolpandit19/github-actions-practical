@@ -4,95 +4,71 @@ on:
   push:
     branches:
       - main
-
   pull_request:
     branches:
       - main
-
   workflow_dispatch:
 
 jobs:
 
-  # -------------------------
-  # BUILD JOB
-  # -------------------------
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Build application
         run: |
           echo "Building application..."
-          echo "Build completed successfully."
+          echo "Build successful!"
 
-
-  # -------------------------
-  # TEST JOB
-  # -------------------------
   test:
-    runs-on: ubuntu-latest
     needs: build
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Run tests
         run: |
           echo "Running tests..."
-          echo "All tests passed successfully."
+          echo "All tests passed!"
 
-
-  # -------------------------
-  # DOCKER BUILD JOB
-  # -------------------------
   docker-build:
-    runs-on: ubuntu-latest
     needs: test
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Build Docker image
         run: |
-          docker build -t anmolpandit19/github-actions-practical:${{ github.sha }} .
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-demo:latest .
 
-      - name: Verify Docker image
-        run: |
-          docker images
+      - name: Show Docker images
+        run: docker images
 
-
-  # -------------------------
-  # DOCKER HUB PUSH JOB
-  # -------------------------
   docker-push:
-    runs-on: ubuntu-latest
     needs: docker-build
-
-    # Push only when code is pushed to main
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Log in to Docker Hub
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: anmolpandit19
-          password: ${{ secrets.AMOLPANDIT19 }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build Docker image
         run: |
-          docker build \
-            -t anmolpandit19/github-actions-practical:latest \
-            -t anmolpandit19/github-actions-practical:${{ github.sha }} .
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-demo:latest .
 
       - name: Push Docker image to Docker Hub
         run: |
-          docker push anmolpandit19/github-actions-practical:latest
-          docker push anmolpandit19/github-actions-practical:${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-demo:latest
