@@ -5,6 +5,11 @@ on:
     branches:
       - main
 
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
   workflow_dispatch:
 env:
   APP_NAME: GitHub-Actions-App
