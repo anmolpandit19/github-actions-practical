@@ -24,7 +24,9 @@ jobs:
           echo "Environment: $ENVIRONMENT"
 
       - name: Build Application
-        run: echo "Building $APP_NAME"
+  run: |
+    echo "Building $APP_NAME"
+    echo "Version: ${{ vars.APP_VERSION }}"
 
   test:
     needs: build
