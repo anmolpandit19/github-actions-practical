@@ -4,95 +4,86 @@ on:
   push:
     branches:
       - main
-
   pull_request:
     branches:
       - main
-
   workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
 
-  # -------------------------
-  # BUILD JOB
-  # -------------------------
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Build application
         run: |
           echo "Building application..."
-          echo "Build completed successfully."
+          echo "Build successful!"
 
-
-  # -------------------------
-  # TEST JOB
-  # -------------------------
   test:
-    runs-on: ubuntu-latest
     needs: build
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Run tests
         run: |
           echo "Running tests..."
-          echo "All tests passed successfully."
+          echo "All tests passed!"
 
-
-  # -------------------------
-  # DOCKER BUILD JOB
-  # -------------------------
   docker-build:
-    runs-on: ubuntu-latest
     needs: test
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Build Docker image
-        run: |
-          docker build -t anmolpandit19/github-actions-practical:${{ github.sha }} .
-
-      - name: Verify Docker image
-        run: |
-          docker images
-
-
-  # -------------------------
-  # DOCKER HUB PUSH JOB
-  # -------------------------
-  docker-push:
     runs-on: ubuntu-latest
-    needs: docker-build
-
-    # Push only when code is pushed to main
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: anmolpandit19
-          password: ${{ secrets.AMOLPANDIT19 }}
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Build Docker image
         run: |
-          docker build \
-            -t anmolpandit19/github-actions-practical:latest \
-            -t anmolpandit19/github-actions-practical:${{ github.sha }} .
+          docker build -t github-actions-demo:latest .
 
-      - name: Push Docker image to Docker Hub
+      - name: Show Docker images
+        run: docker images
+
+       docker-push:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: docker-build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::540910306704:role/GitHubActions-ECR-Role
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
         run: |
-          docker push anmolpandit19/github-actions-practical:latest
-          docker push anmolpandit19/github-actions-practical:${{ github.sha }}
+          docker build -t github-actions-demo:latest .
+
+      - name: Tag Docker image
+        run: |
+          docker tag github-actions-demo:latest \
+          540910306704.dkr.ecr.us-east-1.amazonaws.com/github-actions-demo:latest
+
+      - name: Push Docker image to ECR
+        run: |
+          docker push \
+          540910306704.dkr.ecr.us-east-1.amazonaws.com/github-actions-demo:latest
