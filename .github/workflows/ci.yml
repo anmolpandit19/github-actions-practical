@@ -43,16 +43,17 @@ jobs:
         env:
           DEMO_SECRET: ${{ secrets.DEMO_SECRET }}
 
-  test:
+    test:
     needs: build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Tests
-        run: |
-          echo "Testing $APP_NAME"
-          echo "Environment: $ENVIRONMENT"
-          echo "All tests passed!"
+      - name: Run test
+        run: echo "Test successful!"
+
+      - name: PR validation
+        if: github.event_name == 'pull_request'
+        run: echo "This step runs only for Pull Requests"
