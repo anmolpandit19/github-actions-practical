@@ -55,7 +55,7 @@ jobs:
       - name: Show Docker images
         run: docker images
 
-       docker-push:
+         docker-push:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: docker-build
     runs-on: ubuntu-latest
@@ -71,8 +71,8 @@ jobs:
           aws-region: us-east-1
 
       - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+        run: |
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 540910306704.dkr.ecr.us-east-1.amazonaws.com
 
       - name: Build Docker image
         run: |
@@ -80,10 +80,8 @@ jobs:
 
       - name: Tag Docker image
         run: |
-          docker tag github-actions-demo:latest \
-          540910306704.dkr.ecr.us-east-1.amazonaws.com/github-actions-demo:latest
+          docker tag github-actions-demo:latest 540910306704.dkr.ecr.us-east-1.amazonaws.com/github-actions-demo:latest
 
       - name: Push Docker image to ECR
         run: |
-          docker push \
-          540910306704.dkr.ecr.us-east-1.amazonaws.com/github-actions-demo:latest
+          docker push 540910306704.dkr.ecr.us-east-1.amazonaws.com/github-actions-demo:latest
