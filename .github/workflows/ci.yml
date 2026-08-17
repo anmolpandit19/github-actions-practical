@@ -11,98 +11,88 @@ on:
 
   workflow_dispatch:
 
-env:
-  APP_NAME: GitHub-Actions-App
-  ENVIRONMENT: dev
-
 jobs:
 
-  # =========================
+  # -------------------------
   # BUILD JOB
-  # =========================
+  # -------------------------
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v6
 
-      - name: Display Application Information
+      - name: Build application
         run: |
-          echo "Application: $APP_NAME"
-          echo "Environment: $ENVIRONMENT"
-
-      - name: Build Application
-        run: |
-          echo "Building $APP_NAME"
-          echo "Version: ${{ vars.APP_VERSION }}"
-
-      - name: Check GitHub Actions Secret
-        env:
-          DEMO_SECRET: ${{ secrets.DEMO_SECRET }}
-        run: |
-          if [ -n "$DEMO_SECRET" ]; then
-            echo "Secret is available securely"
-          else
-            echo "Secret is NOT available"
-            exit 1
-          fi
+          echo "Building application..."
+          echo "Build completed successfully."
 
 
-  # =========================
+  # -------------------------
   # TEST JOB
-  # =========================
+  # -------------------------
   test:
+    runs-on: ubuntu-latest
     needs: build
-    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v6
 
-      - name: Run Tests
+      - name: Run tests
         run: |
-          echo "Testing $APP_NAME"
-          echo "Environment: $ENVIRONMENT"
-          echo "All tests passed!"
-
-      - name: PR Validation
-        if: github.event_name == 'pull_request'
-        run: |
-          echo "This step runs only for Pull Requests"
-          echo "PR validation successful!"
+          echo "Running tests..."
+          echo "All tests passed successfully."
 
 
-  # =========================
+  # -------------------------
   # DOCKER BUILD JOB
-  # =========================
+  # -------------------------
   docker-build:
-    needs: test
     runs-on: ubuntu-latest
+    needs: test
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v6
 
-      - name: Check Docker Version
+      - name: Build Docker image
         run: |
-          docker --version
+          docker build -t anmolpandit19/github-actions-practical:${{ github.sha }} .
 
-      - name: Build Docker Image
-        run: |
-          docker build -t github-actions-demo:1.0 .
-
-      - name: Verify Docker Image
+      - name: Verify Docker image
         run: |
           docker images
 
-      - name: Test Docker Image
-        run: |
-          docker run -d --name github-actions-container -p 8080:80 github-actions-demo:1.0
-          sleep 5
-          curl http://localhost:8080
 
-      - name: Stop Docker Container
+  # -------------------------
+  # DOCKER HUB PUSH JOB
+  # -------------------------
+  docker-push:
+    runs-on: ubuntu-latest
+    needs: docker-build
+
+    # Push only when code is pushed to main
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: anmolpandit19
+          password: ${{ secrets.AMOLPANDIT19 }}
+
+      - name: Build Docker image
         run: |
-          docker stop github-actions-container
-          docker rm github-actions-container
+          docker build \
+            -t anmolpandit19/github-actions-practical:latest \
+            -t anmolpandit19/github-actions-practical:${{ github.sha }} .
+
+      - name: Push Docker image to Docker Hub
+        run: |
+          docker push anmolpandit19/github-actions-practical:latest
+          docker push anmolpandit19/github-actions-practical:${{ github.sha }}
