@@ -1,4 +1,4 @@
-name: First GitHub Actions Pipeline
+name: CI Pipeline
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - main
 
 jobs:
+
   build:
     runs-on: ubuntu-latest
 
@@ -13,8 +14,22 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Run Build
+      - name: Build Application
+        run: echo "Building application..."
+
+      - name: Build Complete
         run: echo "Build successful!"
 
-      - name: Run Test
-        run: echo "Test successful!"
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Tests
+        run: echo "Running tests..."
+
+      - name: Test Complete
+        run: echo "All tests passed!"
