@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+env:
+  APP_NAME: GitHub-Actions-App
+  ENVIRONMENT: dev
+
 jobs:
 
   build:
@@ -14,11 +18,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Build Application
-        run: echo "Building application..."
+      - name: Display Application Information
+        run: |
+          echo "Application: $APP_NAME"
+          echo "Environment: $ENVIRONMENT"
 
-      - name: Build Complete
-        run: echo "Build successful!"
+      - name: Build Application
+        run: echo "Building $APP_NAME"
 
   test:
     needs: build
@@ -29,7 +35,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Tests
-        run: echo "Running tests..."
-
-      - name: Test Complete
-        run: echo "All tests passed!"
+        run: |
+          echo "Testing $APP_NAME"
+          echo "Environment: $ENVIRONMENT"
+          echo "All tests passed!"
