@@ -17,6 +17,9 @@ env:
 
 jobs:
 
+  # =========================
+  # BUILD JOB
+  # =========================
   build:
     runs-on: ubuntu-latest
 
@@ -34,7 +37,7 @@ jobs:
           echo "Building $APP_NAME"
           echo "Version: ${{ vars.APP_VERSION }}"
 
-      - name: Check Secret
+      - name: Check GitHub Actions Secret
         env:
           DEMO_SECRET: ${{ secrets.DEMO_SECRET }}
         run: |
@@ -45,6 +48,10 @@ jobs:
             exit 1
           fi
 
+
+  # =========================
+  # TEST JOB
+  # =========================
   test:
     needs: build
     runs-on: ubuntu-latest
@@ -64,3 +71,38 @@ jobs:
         run: |
           echo "This step runs only for Pull Requests"
           echo "PR validation successful!"
+
+
+  # =========================
+  # DOCKER BUILD JOB
+  # =========================
+  docker-build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Check Docker Version
+        run: |
+          docker --version
+
+      - name: Build Docker Image
+        run: |
+          docker build -t github-actions-demo:1.0 .
+
+      - name: Verify Docker Image
+        run: |
+          docker images
+
+      - name: Test Docker Image
+        run: |
+          docker run -d --name github-actions-container -p 8080:80 github-actions-demo:1.0
+          sleep 5
+          curl http://localhost:8080
+
+      - name: Stop Docker Container
+        run: |
+          docker stop github-actions-container
+          docker rm github-actions-container
