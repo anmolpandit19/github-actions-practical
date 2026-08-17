@@ -27,6 +27,17 @@ jobs:
           echo "Building $APP_NAME"
           echo "Version: ${{ vars.APP_VERSION }}"
 
+      - name: Check Secret
+        run: |
+          if [ -n "$DEMO_SECRET" ]; then
+            echo "Secret is available securely"
+          else
+            echo "Secret is NOT available"
+            exit 1
+          fi
+        env:
+          DEMO_SECRET: ${{ secrets.DEMO_SECRET }}
+
   test:
     needs: build
     runs-on: ubuntu-latest
