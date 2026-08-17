@@ -10,7 +10,6 @@ on:
       - main
 
   workflow_dispatch:
-  workflow_dispatch:
 env:
   APP_NAME: GitHub-Actions-App
   ENVIRONMENT: dev
